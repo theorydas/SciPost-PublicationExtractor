@@ -1,4 +1,4 @@
-from datetime import date as dt
+import subprocess
 import re
 
 class Author():
@@ -14,10 +14,33 @@ class Abstract():
     
     def __init__(self, text):
         self.text = text
+        self.jats = self.get_Jats()
     
     def get_Jats(self):
         """ Returns the JATS XML for the abstract. """
-        return 1
+        # First we create a temporary file with the original abstract.
+        
+        with open("abstract.txt", "w") as f:
+            f.write(self.text)
+        
+        # Then we use pandoc to convert it to JATS.
+        subprocess.run(["pandoc", "-t", "jats", "abstract.txt", "-o", "abstract.xml"])
+        
+        # We read the JATS XML, and delete the temporary files.
+        abstract_jats = open("abstract.xml", "r").read()        
+        subprocess.run(["rm", "abstract.txt"])
+        subprocess.run(["rm", "abstract.xml"])
+        
+        # Finally we have to format the JATS XML.
+        tags_to_change = ["p", "inline-formula", "alternatives", "tex-math"]
+        for tag in tags_to_change:
+            abstract_jats = abstract_jats.replace(f"<{tag}>", f"<jats:{tag}>")
+            abstract_jats = abstract_jats.replace(f"</{tag}>", f"</jats:{tag}>")
+        
+        return abstract_jats
+    
+    def __repr__(self):
+        return self.text
 
 class Date():
     """ A class to represent a date. """
