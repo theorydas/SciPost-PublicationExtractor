@@ -5,7 +5,7 @@ from MetaForge.paper import Paper
 
 from pathlib import Path
 
-def make_publication_format(paper_path: str, doi: str, date: str):
+def make_publication_format(paper_path: str, doi: str, date: str) -> None:
     with open(paper_path, "r") as f:
         # Given the paper_path we want to find its parent folder if possible.
         folder = paper_path.split("/")[0] # For this to work, publications should be in folders in a directory where this is called.
@@ -29,7 +29,7 @@ def make_publication_format(paper_path: str, doi: str, date: str):
                 f2.write("\n\n")
                 
                 # We want to know if there are any special characters in the abstract. If there are, we inform the user.
-                special_chars = ["<", ">", "&", "%", "\\"]
+                special_chars = ["<", ">", "&", "%", "\\", "'", "`"]
                 for char in special_chars:
                     if char in abstract.text:
                         f2.write(f"The abstract contains the special character: {char}")
@@ -62,7 +62,5 @@ if __name__ == "__main__":
     parser.add_argument("publish_date") # DD-MM-YYYY
 
     args = parser.parse_args()
-    
-    print(args.latex_file)
 
     make_publication_format(args.latex_file, args.target_doi, args.publish_date)
