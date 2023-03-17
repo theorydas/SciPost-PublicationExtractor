@@ -71,33 +71,54 @@ class Paper():
         
         return mails
     
+    def set_date(paper: str, date: Date) -> str:
+        """ Set the date of the paper on all related fields. """
+        
+        DMY = date.DMY()
+        YMD = date.YMD()
+
+        # Change the publication date in titlepage.
+        published_section = re.findall("Published (.*?)\n%%%%%%%%%% END TODO: DATES", paper)[0]
+        paper = paper.replace(f"Published {published_section}", f"Published {DMY}")
+        
+        # Change in the URL section.
+        url_section = re.findall("&amp;date_stamp=(.*?)}", paper)[0]
+        paper = paper.replace(f"&amp;date_stamp={url_section}", f"&amp;date_stamp={YMD}")
+        
+        # Change at the top of every page.
+        top_section = re.findall(r"\\rhead{\\small \\href{https://scipost.org(.*?)\}\}", paper)[0]
+        paper = paper.replace(top_section, f"{top_section[:-5]}{date.year})")
+
+        return paper
+    
     def format_publication_format(paper: str, doi: str, date: Date) -> str:
-        # Firt, we need to begin a minipage environment.
-        original_section = "\\begin{minipage}{0.4\\textwidth}\n%%%%%%%%%% TODO: DATES"
-        target_section = "\\begin{minipage}{0.4\\textwidth}\n\\noindent\\begin{minipage}{0.68\\textwidth}\n%%%%%%%%%% TODO: DATES"
+        """ Format the paper for publication. """
+        
+        # Remove linenumbers
+        paper = paper.replace("\n\\linenumbers\n", "\n%\\linenumbers\n" )
+        
+        # We need to begin a minipage environment. But first we need to find the right textwidth dimensions according to journal.
+        dimension = re.findall(r'\\begin{minipage}{(.*?)\\textwidth}\n%%%%%%%%%% TODO: DATES', paper)[0]
+        
+        original_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n%%%%%%%%%% TODO: DATES"
+        target_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n\\noindent\\begin{{minipage}}{{0.68\\textwidth}}\n%%%%%%%%%% TODO: DATES"
         
         paper = paper.replace(original_section, target_section)
         
-        # Add the publication date
-        paper = paper.replace("Published ??-??-20??", f"Published {date.DMY()}")
-        
-        
         # Add the doi on every page.
-        paper = paper.replace("\\rhead{\small \href{https://scipost.org/SciPostPhys.?.?.???}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
+        original = re.findall("scipost.org/(.*?)\}\{SciPost", paper)[0]
+        paper = paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
         
         # We need to recognise which journal the paper is published at, and search for the appropriate template.
         journal = doi.split(".")[0]
         if journal == "SciPostPhys" or journal == "SciPostPhysCore":
-            #SciPost Phys. ?, ??? (20??)
-            #SciPost Phys. Core ?, ??? (20??)
-            paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]}, {doi.split('.')[3]} ({date.year})")
+            #SciPost Phys. ?, ??? (20??), SciPost Phys. Core ?, ??? (20??)
+            paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]}, {doi.split('.')[3]} (20??)")
         elif journal == "SciPostPhysLectNotes":
             #SciPost Phys. Lect. Notes ??? (20??)
-            paper = paper.replace(" ??? (20??)", f" {doi.split('.')[1]} ({date.year})")
+            paper = paper.replace(" ??? (20??)", f" {doi.split('.')[1]} (20??)")
         else:
             print("No known journal found. Please incorporate in the code.")
-        
-        
         
         # Find what exists between two DOI tags, and replace it with the new section.
         original_doi_section = re.findall(r'%%%%%%%%%% TODO: DOI\n(.*?)\n%%%%%%%%%% END TODO: DOI', paper, re.DOTALL)[0]
@@ -105,7 +126,7 @@ class Paper():
     \\end{{minipage}}
     \\begin{{minipage}}{{0.25\\textwidth}}
     \\begin{{center}}
-    \\href{{https://crossmark.crossref.org/dialog/?doi=10.21468/{doi}&amp;domain=pdf&amp;date_stamp={date.YMD()}}}{{\includegraphics[width=7mm]{{CROSSMARK_BW_square_no_text.png}}}}\\\\
+    \\href{{https://crossmark.crossref.org/dialog/?doi=10.21468/{doi}&amp;domain=pdf&amp;date_stamp=YYYY-MM-DD}}{{\includegraphics[width=7mm]{{CROSSMARK_BW_square_no_text.png}}}}\\\\
     \\tiny{{Check for}}\\\\
     \\tiny{{updates}}
     \\end{{center}}
@@ -115,4 +136,6 @@ class Paper():
         
         paper = paper.replace(original_doi_section, new_doi_section)
         
+        # Add a publication date to the paper.
+        paper = Paper.set_date(paper, date)
         return paper
