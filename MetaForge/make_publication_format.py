@@ -2,6 +2,7 @@ import argparse
 
 from MetaForge.misc import Date
 from MetaForge.paper import Paper
+from MetaForge.write_jats_abstract import write_jats_abstract
 
 from pathlib import Path
 from datetime import date, timedelta
@@ -27,18 +28,9 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
             
             with open(f"{folder}/Abstract.txt", "w") as f2:
                 f2.write(abstract.text)
-                f2.write("\n\n")
-                
-                # We want to know if there are any special characters in the abstract. If there are, we inform the user.
-                special_chars = ["<", ">", "&", "%", "\\", "'", "`", "~"]
-                for char in special_chars:
-                    if char in abstract.text:
-                        f2.write(f"The abstract contains the special character: {char}")
-                        f2.write("\n")
-                
-                f2.write("\n\n")
-                f2.write(abstractJats)
                 f2.close()
+            
+            write_jats_abstract(f"{folder}/Abstract.txt")
             
         except:
             print("No abstract found.")
@@ -48,7 +40,7 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
     # We copy the crossmark image to the folder.
     imagepath = "CROSSMARK_BW_square_no_text.png"
     
-    source = Path(f"MetaForge/{imagepath}")
+    source = Path(f"../MetaForge/{imagepath}")
     newpath = Path(f"{folder}/{imagepath}")
     newpath.write_bytes(source.read_bytes())
     
