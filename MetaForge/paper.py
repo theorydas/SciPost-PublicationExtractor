@@ -70,6 +70,11 @@ class Paper():
         mails = {mailsymbol: mail for mailsymbol, mail in zip(mailkeys, mails)}
         
         return mails
+
+    def set_doi(paper: str, doi: str) -> str:
+        """ Set the DOI of the paper on all related fields. """
+        
+        return paper.replace("TODO: DOI", doi)
     
     def set_date(paper: str, date: Date) -> str:
         """ Set the date of the paper on all related fields. """

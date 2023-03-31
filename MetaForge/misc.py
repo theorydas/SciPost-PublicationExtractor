@@ -72,7 +72,7 @@ class Date():
     
     def DMY(self) -> str:
         """ Returns the date in the format DD-MM-YYYY. """
-        return f"{self.day}-{self.month:02d}-{self.year:02d}"
+        return f"{self.day:02d}-{self.month:02d}-{self.year}"
     
     def YMD(self) -> str:
         """" Returns the date in the format YYYY-MM-DD. """
