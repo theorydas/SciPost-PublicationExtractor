@@ -122,6 +122,10 @@ class Paper():
         elif journal == "SciPostPhysLectNotes":
             #SciPost Phys. Lect. Notes ??? (20??)
             paper = paper.replace(" ??? (20??)", f" {doi.split('.')[1]} (20??)")
+        elif journal == "SciPostPhysCodeb":
+            #SciPost Phys. Codebases ?, ??? (20??) ->
+            #SciPost Phys. Codebases ?? (20??)
+            paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]} (20??)")
         else:
             print("No known journal found. Please incorporate in the code.")
         
