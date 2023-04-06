@@ -37,6 +37,10 @@ class Abstract():
             abstract_jats = abstract_jats.replace(f"<{tag}>", f"<jats:{tag}>")
             abstract_jats = abstract_jats.replace(f"</{tag}>", f"</jats:{tag}>")
         
+        # We remove the newlines that are inserted by the JATS format.
+        abstract_jats = abstract_jats.replace("\n", " ")
+        abstract_jats = abstract_jats.strip() # And we remove the leading and trailing spaces.
+        
         return abstract_jats
     
     def __repr__(self):

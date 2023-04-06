@@ -17,7 +17,7 @@ def write_jats_abstract(abstract_path: str) -> None:
                 f.write("\n")
         
         f.write("\n\n")
-        f.write(abstractJats.replace("\n", " ")) # We remove the newlines that are inserted by the JATS format.
+        f.write(abstractJats) # We remove the newlines that are inserted by the JATS format.
         f.close()
     
     pass
