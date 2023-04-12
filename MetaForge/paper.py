@@ -116,8 +116,8 @@ class Paper():
         
         # We need to recognise which journal the paper is published at, and search for the appropriate template.
         journal = doi.split(".")[0]
-        if journal == "SciPostPhys" or journal == "SciPostPhysCore":
-            #SciPost Phys. ?, ??? (20??), SciPost Phys. Core ?, ??? (20??)
+        if journal == "SciPostPhys" or journal == "SciPostPhysCore" or journal == "SciPostChem":
+            #SciPost Phys. ?, ??? (20??), SciPost Phys. Core ?, ??? (20??), SciPost Chem. ?, ??? (20??)
             paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]}, {doi.split('.')[3]} (20??)")
         elif journal == "SciPostPhysLectNotes":
             #SciPost Phys. Lect. Notes ??? (20??)
