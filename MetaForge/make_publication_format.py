@@ -44,6 +44,13 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
     newpath = Path(f"{folder}/{imagepath}")
     newpath.write_bytes(source.read_bytes())
     
+    # We also copy the most up-to-date SciPost.cls file.
+    imagepath = "SciPost.cls"
+    
+    source = Path(f"../MetaForge/{imagepath}")
+    newpath = Path(f"{folder}/{imagepath}")
+    newpath.write_bytes(source.read_bytes())
+    
     pass
 
 if __name__ == "__main__":
