@@ -102,6 +102,9 @@ class Paper():
         # Remove linenumbers
         paper = paper.replace("\n\\linenumbers\n", "\n%\\linenumbers\n" )
         
+        # Match \url links with \doi and \hrefs
+        paper = paper.replace("\n\\urlstyle{sf}\n", "\n\\urlstyle{same}\n" )
+        
         # We need to begin a minipage environment. But first we need to find the right textwidth dimensions according to journal.
         dimension = re.findall(r'\\begin{minipage}{(.*?)\\textwidth}\n%%%%%%%%%% TODO: DATES', paper)[0]
         
