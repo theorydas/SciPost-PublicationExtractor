@@ -51,6 +51,11 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
     newpath = Path(f"{folder}/{imagepath}")
     newpath.write_bytes(source.read_bytes())
     
+    # And the .gitignore file.    
+    source = Path(f"../MetaForge/gitignore.txt")
+    newpath = Path(f"{folder}/.gitignore")
+    newpath.write_bytes(source.read_bytes())
+    
     pass
 
 if __name__ == "__main__":

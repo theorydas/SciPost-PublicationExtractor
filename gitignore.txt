@@ -1,0 +1,24 @@
+*~
+*.synctex*
+*.aux
+*.fls
+*.fdb_latexmk
+*.log
+*.toc
+*.loc
+*.soc
+*.out
+*.ind
+*.ilg
+*.idx
+*.maf
+*.mtc
+*.mtc0
+*.mtf
+*.textClipping
+v1f_production.*
+.DS_Store
+*.blg
+v1f_production.zip
+v1f_production/*
+original files/*
