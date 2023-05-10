@@ -17,10 +17,11 @@ def write_jats_abstract(abstract_path: str) -> None:
                 f.write("\n")
         
         f.write("\n\n")
+        f.write(abstractJats) # We remove the newlines that are inserted by the JATS format.
+        f.write("\n\n")
         f.write("--------")
         f.write(r"\bibitem{Test_Item}")
         f.write(r"\doi{INSERT_DOI}")
-        f.write(abstractJats) # We remove the newlines that are inserted by the JATS format.
         f.close()
     
     pass
