@@ -72,4 +72,5 @@ if __name__ == "__main__":
         # We want to publish with a delay.
         publication_date = (date.today() + timedelta(days = int(args.publish_date))).strftime("%d-%m-%Y")
     
+    print("Publication date:", publication_date)
     make_publication_format(args.latex_file, args.target_doi, publication_date)
