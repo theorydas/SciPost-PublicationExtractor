@@ -108,49 +108,64 @@ class Paper():
         # Remove \usepackage[bottom]{footmisc} which breaks footnotes in some compilers. TODO: Check in summer if still needed or is removed from template.
         paper = paper.replace("\n\\usepackage[bottom]{footmisc}\n", "\n%\\usepackage[bottom]{footmisc}\n" )
         
-        # We need to begin a minipage environment. But first we need to find the right textwidth dimensions according to journal.
-        dimension = re.findall(r'\\begin{minipage}{(.*?)\\textwidth}\n%%%%%%%%%% TODO: DATES', paper)[0]
-        
-        original_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n%%%%%%%%%% TODO: DATES"
-        target_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n\\noindent\\begin{{minipage}}{{0.68\\textwidth}}\n%%%%%%%%%% TODO: DATES"
-        
-        paper = paper.replace(original_section, target_section)
-        
-        # Add the doi on every page.
+        # # Add the doi on every page.
         original = re.findall("scipost.org/(.*?)\}\{SciPost", paper)[0]
         paper = paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
         
         # We need to recognise which journal the paper is published at, and search for the appropriate template.
         journal = doi.split(".")[0]
-        if journal == "SciPostPhys" or journal == "SciPostPhysCore" or journal == "SciPostChem":
-            #SciPost Phys. ?, ??? (20??), SciPost Phys. Core ?, ??? (20??), SciPost Chem. ?, ??? (20??)
-            paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]}, {doi.split('.')[3]} (20??)")
-        elif journal == "SciPostPhysLectNotes":
-            #SciPost Phys. Lect. Notes ??? (20??)
-            paper = paper.replace(" ??? (20??)", f" {doi.split('.')[1]} (20??)")
-        elif journal == "SciPostPhysCodeb":
-            #SciPost Phys. Codebases ?, ??? (20??) ->
-            #SciPost Phys. Codebases ?? (20??)
-            paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]} (20??)")
+        print(journal)
+        if journal != "SciPostPhysProc":
+            # We need to begin a minipage environment. But first we need to find the right textwidth dimensions according to journal.
+            dimension = re.findall(r'\\begin{minipage}{(.*?)\\textwidth}\n%%%%%%%%%% TODO: DATES', paper)[0]
+            
+            original_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n%%%%%%%%%% TODO: DATES"
+            target_section = f"\\begin{{minipage}}{{{dimension}\\textwidth}}\n\\noindent\\begin{{minipage}}{{0.68\\textwidth}}\n%%%%%%%%%% TODO: DATES"
+            
+            paper = paper.replace(original_section, target_section)
+            
+            if journal == "SciPostPhys" or journal == "SciPostPhysCore" or journal == "SciPostChem":
+                #SciPost Phys. ?, ??? (20??), SciPost Phys. Core ?, ??? (20??), SciPost Chem. ?, ??? (20??)
+                paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]}, {doi.split('.')[3]} (20??)")
+            elif journal == "SciPostPhysLectNotes":
+                #SciPost Phys. Lect. Notes ??? (20??)
+                paper = paper.replace(" ??? (20??)", f" {doi.split('.')[1]} (20??)")
+            elif journal == "SciPostPhysCodeb":
+                #SciPost Phys. Codebases ?, ??? (20??) ->
+                #SciPost Phys. Codebases ?? (20??)
+                paper = paper.replace(" ?, ??? (20??)", f" {doi.split('.')[1]} (20??)")
+            else:
+                print("No known journal found. Please incorporate in the code.")
+            
+            # Find what exists between two DOI tags, and replace it with the new section.
+            original_doi_section = re.findall(r'%%%%%%%%%% TODO: DOI\n(.*?)\n%%%%%%%%%% END TODO: DOI', paper, re.DOTALL)[0]
+            new_doi_section = f"""}}
+        \\end{{minipage}}
+        \\begin{{minipage}}{{0.25\\textwidth}}
+        \\begin{{center}}
+        \\href{{https://crossmark.crossref.org/dialog/?doi=10.21468/{doi}&amp;domain=pdf&amp;date_stamp=YYYY-MM-DD}}{{\includegraphics[width=7mm]{{CROSSMARK_BW_square_no_text.png}}}}\\\\
+        \\tiny{{Check for}}\\\\
+        \\tiny{{updates}}
+        \\end{{center}}
+        \\end{{minipage}}
+        \\\\\\\\
+        \small{{\doi{{10.21468/{doi}}}"""
+            
+            paper = paper.replace(original_doi_section, new_doi_section)
         else:
-            print("No known journal found. Please incorporate in the code.")
-        
-        # Find what exists between two DOI tags, and replace it with the new section.
-        original_doi_section = re.findall(r'%%%%%%%%%% TODO: DOI\n(.*?)\n%%%%%%%%%% END TODO: DOI', paper, re.DOTALL)[0]
-        new_doi_section = f"""}}
-    \\end{{minipage}}
-    \\begin{{minipage}}{{0.25\\textwidth}}
-    \\begin{{center}}
-    \\href{{https://crossmark.crossref.org/dialog/?doi=10.21468/{doi}&amp;domain=pdf&amp;date_stamp=YYYY-MM-DD}}{{\includegraphics[width=7mm]{{CROSSMARK_BW_square_no_text.png}}}}\\\\
-    \\tiny{{Check for}}\\\\
-    \\tiny{{updates}}
-    \\end{{center}}
-    \\end{{minipage}}
-    \\\\\\\\
-    \small{{\doi{{10.21468/{doi}}}"""
-        
-        paper = paper.replace(original_doi_section, new_doi_section)
-        
+            issue = doi.split(".")[1]
+            page = doi.split(".")[2]
+            
+            #SciPost Phys. Proc. ?, ?? (202?)
+            # We remove the extra 2 from the year.
+            paper = paper.replace(" ?, ?? (202?)", f" {issue}, {page} (20??)")
+            paper = paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")
+            # Proceedings also carry the issue number on their page numbers.
+            paper = paper.replace(r"??.\thepage", rf"{page}.\thepage")
+            
+            paper = paper.replace("\small{\doi{10.21468/SciPostPhysProc.?.???}", f"\small{{\doi{{10.21468/{doi}}}")
+            paper = paper.replace("\doi{10.21468/SciPostPhysProc.?", f"\doi{{10.21468/SciPostPhysProc.{issue}")
+            paper = paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")
         # Add a publication date to the paper.
         paper = Paper.set_date(paper, date)
         return paper
