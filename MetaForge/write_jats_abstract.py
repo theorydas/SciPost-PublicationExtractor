@@ -6,6 +6,10 @@ def write_jats_abstract(abstract_path: str) -> None:
     with open(abstract_path, "r+") as f:
         abstract = f.read()
         
+        # We remove any newlines from the authors.
+        abstract = abstract.replace("\n", " ")
+        abstract = abstract.strip() # And we remove the leading and trailing spaces.
+        
         abstractJats = Abstract(abstract).jats
         f.write("\n\n")
         
