@@ -102,3 +102,8 @@ def format_line_spacing(text: str) -> str:
     text = text.strip()
     
     return text
+
+def print_error(error_message: str):
+    """ Prints an error message. """
+    
+    print(f"\033[91m{error_message}\033[0m")

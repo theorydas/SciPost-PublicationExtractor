@@ -1,6 +1,6 @@
 import re
 
-from MetaForge.misc import Date, Abstract, format_line_spacing
+from MetaForge.misc import Date, Abstract, format_line_spacing, print_error
 
 class Paper():
     """ A class to represent a publication. """
@@ -83,38 +83,53 @@ class Paper():
         YMD = date.YMD()
 
         # Change the publication date in titlepage.
-        published_section = re.findall("Published (.*?)\n%%%%%%%%%% END TODO: DATES", paper)[0]
-        paper = paper.replace(f"Published {published_section}", f"Published {DMY}")
+        try:
+            published_section = re.findall("Published (.*?)\n%%%%%%%%%% END TODO: DATES", paper)[0]
+            paper = paper.replace(f"Published {published_section}", f"Published {DMY}")
+        except:
+            print_error("Could not find the publication date.")
         
         # Change in the URL section.
-        url_section = re.findall("&amp;date_stamp=(.*?)}", paper)[0]
-        paper = paper.replace(f"&amp;date_stamp={url_section}", f"&amp;date_stamp={YMD}")
+        try:
+            url_section = re.findall("&amp;date_stamp=(.*?)}", paper)[0]
+            paper = paper.replace(f"&amp;date_stamp={url_section}", f"&amp;date_stamp={YMD}")
+        except:
+            print_error("Could not find the URL section.")
         
         # Change at the top of every page.
-        top_section = re.findall(r"\\rhead{\\small \\href{https://scipost.org(.*?)\}\}", paper)[0]
-        paper = paper.replace(top_section, f"{top_section[:-5]}{date.year})")
-
+        try:
+            top_section = re.findall(r"\\rhead{\\small \\href{https://scipost.org(.*?)\}\}", paper)[0]
+            paper = paper.replace(top_section, f"{top_section[:-5]}{date.year})")
+        except:
+            print_error("Could not find the top section.")
+        
         return paper
     
     def format_publication_format(paper: str, doi: str, date: Date) -> str:
         """ Format the paper for publication. """
         
         # Remove linenumbers
-        paper = paper.replace("\n\\linenumbers\n", "\n%\\linenumbers\n" )
+        if paper == (paper := paper.replace("\n\\linenumbers\n", "\n%\\linenumbers\n" )):
+            print_error("Could not find linenumbers.")
         
         # Match \url links with \doi and \hrefs
-        paper = paper.replace("\n\\urlstyle{sf}\n", "\n\\urlstyle{same}\n" )
+        if paper == (paper := paper.replace("\n\\urlstyle{sf}\n", "\n\\urlstyle{same}\n" )):
+            print_error("Could not find urlstyle.")
         
         # Remove \usepackage[bottom]{footmisc} which breaks footnotes in some compilers. TODO: Check in summer if still needed or is removed from template.
-        paper = paper.replace("\n\\usepackage[bottom]{footmisc}\n", "\n%\\usepackage[bottom]{footmisc}\n" )
+        if paper == (paper := paper.replace("\n\\usepackage[bottom]{footmisc}\n", "\n%\\usepackage[bottom]{footmisc}\n" )):
+            print_error("Could not find footmisc.")
         
         # # Add the doi on every page.
-        original = re.findall("scipost.org/(.*?)\}\{SciPost", paper)[0]
-        paper = paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
+        try:
+            original = re.findall("scipost.org/(.*?)\}\{SciPost", paper)[0]
+            paper = paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
+        except:
+            print_error("Could not find the doi section.")
         
         # We need to recognise which journal the paper is published at, and search for the appropriate template.
         journal = doi.split(".")[0]
-        print(journal)
+        
         if journal != "SciPostPhysProc":
             # We need to begin a minipage environment. But first we need to find the right textwidth dimensions according to journal.
             dimension = re.findall(r'\\begin{minipage}{(.*?)\\textwidth}\n%%%%%%%%%% TODO: DATES', paper)[0]
@@ -158,14 +173,23 @@ class Paper():
             
             #SciPost Phys. Proc. ?, ?? (202?)
             # We remove the extra 2 from the year.
-            paper = paper.replace(" ?, ?? (202?)", f" {issue}, {page} (20??)")
-            paper = paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")
-            # Proceedings also carry the issue number on their page numbers.
-            paper = paper.replace(r"??.\thepage", rf"{page}.\thepage")
+            if paper == (paper := paper.replace(" ?, ?? (202?)", f" {issue}, {page} (20??)")):
+                print_error("Could not find the year.")
             
-            paper = paper.replace("\small{\doi{10.21468/SciPostPhysProc.?.???}", f"\small{{\doi{{10.21468/{doi}}}")
-            paper = paper.replace("\doi{10.21468/SciPostPhysProc.?", f"\doi{{10.21468/SciPostPhysProc.{issue}")
-            paper = paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")
+            
+            # Proceedings also carry the issue number on their page numbers.
+            if paper == (paper := paper.replace(r"??.\thepage", rf"{page}.\thepage")):
+                print_error("Could not find the page numbers.")
+            
+            if paper == (paper := paper.replace("\small{\doi{10.21468/SciPostPhysProc.?.???}", f"\small{{\doi{{10.21468/{doi}}}")):
+                print_error("Could not find the big DOI.")
+            
+            if paper == (paper := paper.replace("\doi{10.21468/SciPostPhysProc.?", f"\doi{{10.21468/SciPostPhysProc.{issue}")):
+                print_error("Could not find the DOI.")
+                
+            if paper == (paper := paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")):
+                print_error("Could not find link DOIs.")
+            
         # Add a publication date to the paper.
         paper = Paper.set_date(paper, date)
         return paper
