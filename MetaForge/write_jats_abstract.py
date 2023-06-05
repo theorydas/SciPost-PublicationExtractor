@@ -17,7 +17,7 @@ def write_jats_abstract(abstract_path: str) -> None:
         special_chars = ["<", ">", "&", "%", "\\", "'", "`", "~", "--", '"', '“', '”']
         for char in special_chars:
             if char in abstract:
-                f.write(f"The abstract contains the special character: {char}")
+                f.write(f"The abstract contains the special character: {char} ({abstract.count(char)})")
                 f.write("\n")
         
         f.write("\n\n")
