@@ -82,24 +82,25 @@ class Paper():
         DMY = date.DMY()
         YMD = date.YMD()
 
-        # Change the publication date in titlepage.
-        try:
+        try: # Change the publication date in titlepage.
             published_section = re.findall("Published (.*?)\n%%%%%%%%%% END TODO: DATES", paper)[0]
-            paper = paper.replace(f"Published {published_section}", f"Published {DMY}")
+            if paper == (paper := paper.replace(f"Published {published_section}", f"Published {DMY}")):
+                raise ValueError
         except:
             print_error("Could not find the publication date.")
         
-        # Change in the URL section.
-        try:
+        try: # Change in the URL section.
             url_section = re.findall("&amp;date_stamp=(.*?)}", paper)[0]
-            paper = paper.replace(f"&amp;date_stamp={url_section}", f"&amp;date_stamp={YMD}")
+            if paper == (paper := paper.replace(f"&amp;date_stamp={url_section}", f"&amp;date_stamp={YMD}")):
+                raise ValueError
         except:
             print_error("Could not find the URL section.")
         
         # Change at the top of every page.
         try:
             top_section = re.findall(r"\\rhead{\\small \\href{https://scipost.org(.*?)\}\}", paper)[0]
-            paper = paper.replace(top_section, f"{top_section[:-5]}{date.year})")
+            if paper == (paper := paper.replace(top_section, f"{top_section[:-5]}{date.year})")):
+                raise ValueError
         except:
             print_error("Could not find the top section.")
         
@@ -123,7 +124,8 @@ class Paper():
         # # Add the doi on every page.
         try:
             original = re.findall("scipost.org/(.*?)\}\{SciPost", paper)[0]
-            paper = paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")
+            if paper == (paper := paper.replace(f"\\rhead{{\small \href{{https://scipost.org/{original}}}", f"\\rhead{{\small \href{{https://scipost.org/{doi}}}")):
+                raise ValueError
         except:
             print_error("Could not find the doi section.")
         
