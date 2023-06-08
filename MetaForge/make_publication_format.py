@@ -1,6 +1,6 @@
 import argparse
 
-from MetaForge.misc import Date
+from MetaForge.misc import Date, print_error
 from MetaForge.paper import Paper
 from MetaForge.write_jats_abstract import write_jats_abstract
 
@@ -33,7 +33,7 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
             write_jats_abstract(f"{folder}/Abstract.txt")
             
         except:
-            print("No abstract found.")
+            print_error("No abstract found.")
         
         f.close()
         
