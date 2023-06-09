@@ -1,7 +1,7 @@
 import argparse
 
 from MetaForge.misc import Date, print_error
-from MetaForge.paper import Paper
+from MetaForge.paper import Paper, Abstract
 from MetaForge.write_jats_abstract import write_jats_abstract
 
 from pathlib import Path
@@ -26,17 +26,18 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
             if abstractJats == "" or abstractJats == None:
                 raise Exception("No abstract found.")
             
-            with open(f"{folder}/Abstract.txt", "w") as f2:
-                f2.write(abstract.text)
-                f2.close()
-            
-            write_jats_abstract(f"{folder}/Abstract.txt")
-            
         except:
             print_error("No abstract found.")
+            abstract = Abstract("")
         
         f.close()
-        
+    
+    with open(f"{folder}/Abstract.txt", "w") as f2:
+        f2.write(abstract.text)
+        f2.close()
+    
+    write_jats_abstract(f"{folder}/Abstract.txt")
+    
     # We copy the crossmark image to the folder.
     imagepath = "CROSSMARK_BW_square_no_text.png"
     
