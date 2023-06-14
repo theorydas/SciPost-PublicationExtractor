@@ -3,12 +3,15 @@ import argparse
 from MetaForge.misc import Abstract
 
 def write_jats_abstract(abstract_path: str) -> None:
-    with open(abstract_path, "r+") as f:
+    with open(abstract_path, "r") as f:
         abstract = f.read()
-        
-        # We remove any newlines from the authors.
-        abstract = abstract.replace("\n", " ")
-        abstract = abstract.strip() # And we remove the leading and trailing spaces.
+    
+    # We remove newlines or spaces and re-write the file.
+    abstract = abstract.replace("\n", " ")
+    abstract = abstract.strip()
+    
+    with open(abstract_path, "w") as f:
+        f.write(abstract)
         
         abstractJats = Abstract(abstract).jats
         f.write("\n\n")
