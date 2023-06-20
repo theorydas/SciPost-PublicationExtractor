@@ -1,6 +1,9 @@
 import re
+import requests
+from tqdm import tqdm
+from multiprocessing import Pool
 
-from MetaForge.misc import Date, Abstract, format_line_spacing, print_error
+from MetaForge.misc import Date, Abstract, format_line_spacing, print_error, print_warning
 
 class Paper():
     """ A class to represent a publication. """
@@ -105,6 +108,45 @@ class Paper():
             print_error("Could not find the top section.")
         
         return paper
+    
+    def find_wrong_dois(paper: str) -> list:
+        """ Find the wrong DOIs in the paper. """
+        
+        # We only look for DOIs in the references section, i.e. below '\begin{thebibliography}'
+        reference_section = re.findall(r"\\begin{thebibliography}{(.*?)\\end{thebibliography}", paper, re.DOTALL)[0]
+        
+        # We find the DOIs in the paper.
+        dois = re.findall(r"\\doi{(.*?)\}", reference_section)
+        
+        # For each doi we ping the DOI foundation (https://doi.org/doi) and check if it is OK (200 code)
+        # wrong_dois = [ doi for doi in tqdm(dois) if requests.get(f"https://doi.org/{doi}").status_code != 200 ]
+        
+        # We want to run this in parallel
+        with Pool(10) as pool:
+            statuses = list(tqdm(
+                pool.imap(Paper.doi_status_code, dois), total = len(dois)
+            ))
+        
+        wrong_dois = [ doi for doi, status in zip(dois, statuses) if status != 200 ]
+        
+        for doi in wrong_dois:
+            status = statuses[dois.index(doi)]
+            reference_id = dois.index(doi) +1
+            link = f"https://doi.org/{doi}"
+            
+            string = f" [{reference_id}]: ({status}) - {link}"
+            if status == 404:
+                print_error(string)
+            else: 
+                print_warning(string) # Sometimes we find forbidden (403) due to bot protection.
+        
+        return wrong_dois
+    
+    def is_doi_wrong(doi: str) -> bool:
+        return Paper.doi_status_code(doi) != 200
+    
+    def doi_status_code(doi: str) -> int:
+        return requests.get(f"https://doi.org/{doi}").status_code
     
     def format_publication_format(paper: str, doi: str, date: Date) -> str:
         """ Format the paper for publication. """

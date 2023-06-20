@@ -16,7 +16,9 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
         with open(f"{folder}/{target_name}.tex", "w") as f2:
             formatted = Paper.format_publication_format(f.read(), doi, Date.from_DMY(date))
             f2.write(formatted)
-            f2.close()
+
+            # Check if there are malformed dois.
+            Paper.find_wrong_dois(formatted)
         
         # We also want a JATS version of the abstract in the folder.
         try:
@@ -34,7 +36,6 @@ def make_publication_format(paper_path: str, doi: str, date: str) -> None:
     
     with open(f"{folder}/Abstract.txt", "w") as f2:
         f2.write(abstract.text)
-        f2.close()
     
     write_jats_abstract(f"{folder}/Abstract.txt")
     

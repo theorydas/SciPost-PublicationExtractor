@@ -107,3 +107,8 @@ def print_error(error_message: str):
     """ Prints an error message. """
     
     print(f"\033[91m{error_message}\033[0m")
+
+def print_warning(warning_message: str):
+    """ Prints a warning message. """
+    
+    print(f"\033[93m{warning_message}\033[0m")
