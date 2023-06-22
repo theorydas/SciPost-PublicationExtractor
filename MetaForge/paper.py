@@ -112,11 +112,15 @@ class Paper():
     def find_wrong_dois(paper: str) -> list:
         """ Find the wrong DOIs in the paper. """
         
+        
         # We only look for DOIs in the references section, i.e. below '\begin{thebibliography}'
         reference_section = re.findall(r"\\begin{thebibliography}{(.*?)\\end{thebibliography}", paper, re.DOTALL)[0]
         
+        # First we replace everything that is commented out, i.e., anything following % in a line.
+        uncommented_reference_section = re.sub(r"%.*", "", reference_section)
+        
         # We find the DOIs in the paper.
-        dois = re.findall(r"\\doi{(.*?)\}", reference_section)
+        dois = re.findall(r"\\doi{(.*?)\}", uncommented_reference_section)
         
         # For each doi we ping the DOI foundation (https://doi.org/doi) and check if it is OK (200 code)
         # wrong_dois = [ doi for doi in tqdm(dois) if requests.get(f"https://doi.org/{doi}").status_code != 200 ]
@@ -137,7 +141,7 @@ class Paper():
             string = f" [{reference_id}]: ({status}) - {link}"
             if status == 404:
                 print_error(string)
-            else: 
+            elif status != 302:
                 print_warning(string) # Sometimes we find forbidden (403) due to bot protection.
         
         return wrong_dois
@@ -146,7 +150,19 @@ class Paper():
         return Paper.doi_status_code(doi) != 200
     
     def doi_status_code(doi: str) -> int:
-        return requests.get(f"https://doi.org/{doi}").status_code
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive'
+            }
+            response = requests.get(f"https://doi.org/{doi}", headers = headers, allow_redirects = False)
+            status_code = response.status_code
+            
+            return status_code
+        except:
+            return 500 # Server error (probably)
     
     def format_publication_format(paper: str, doi: str, date: Date) -> str:
         """ Format the paper for publication. """
