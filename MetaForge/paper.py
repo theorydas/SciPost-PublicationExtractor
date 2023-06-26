@@ -175,9 +175,8 @@ class Paper():
         if paper == (paper := paper.replace("\n\\urlstyle{sf}\n", "\n\\urlstyle{same}\n" )):
             print_error("Could not find urlstyle.")
         
-        # Remove \usepackage[bottom]{footmisc} which breaks footnotes in some compilers. TODO: Check in summer if still needed or is removed from template.
-        if paper == (paper := paper.replace("\n\\usepackage[bottom]{footmisc}\n", "\n%\\usepackage[bottom]{footmisc}\n" )):
-            print_error("Could not find footmisc.")
+        if paper != (paper := paper.replace("\n\\usepackage[bottom]{footmisc}\n", "\n%\\usepackage[bottom]{footmisc}\n" )):
+            print_warning("Removed (problematic) footmisc package.")
         
         # # Add the doi on every page.
         try:
