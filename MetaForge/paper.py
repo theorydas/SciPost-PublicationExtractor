@@ -235,20 +235,45 @@ class Paper():
             if paper == (paper := paper.replace(" ?, ?? (202?)", f" {issue}, {page} (20??)")):
                 print_error("Could not find the year.")
             
-            
             # Proceedings also carry the issue number on their page numbers.
             if paper == (paper := paper.replace(r"??.\thepage", rf"{page}.\thepage")):
-                print_error("Could not find the page numbers.")
+                print_error("Could not find the page numbers at the end of each page.")
             
-            if paper == (paper := paper.replace("\small{\doi{10.21468/SciPostPhysProc.?.???}", f"\small{{\doi{{10.21468/{doi}}}")):
-                print_error("Could not find the big DOI.")
+            if paper.find(r"\noindent\begin{minipage}{0.68\textwidth}") == -1:
+                print_warning("Had to add a minipage to fix the central banner.")
+                paper = paper.replace("%%%%%%%%%% TODO: DATES", "\\noindent\\begin{minipage}{0.68\\textwidth}\n%%%%%%%%%% TODO: DATES")
+            
+            # Find the central DOI section near the dates.
+            # doi_section = re.findall(r'%%%%%%%%%% TODO: DOI\n(.*?)\n%%%%%%%%%% END TODO: DOI', paper, re.DOTALL)[0]
+
+            # if paper == (paper := paper.replace(doi_section, rf"\newline \doi{{10.21468/SciPostPhysProc.{issue}.{page}}}")):
+            #     print_error("Could not find the central DOI near the dates.")
             
             if paper == (paper := paper.replace("\doi{10.21468/SciPostPhysProc.?", f"\doi{{10.21468/SciPostPhysProc.{issue}")):
                 print_error("Could not find the DOI.")
-                
-            if paper == (paper := paper.replace("SciPostPhysProc.?.???", f"SciPostPhysProc.{issue}.{page}")):
-                print_error("Could not find link DOIs.")
             
+            # if paper == (paper := paper.replace("SciPostPhysProc.?.??", f"SciPostPhysProc.{issue}.{page}")):
+            #     print_error("Could not find DOI links at the top and center.")
+            
+            # Find what exists between two DOI tags, and replace it with the new section.
+            try:
+                original_doi_section = re.findall(r'%%%%%%%%%% TODO: DOI\n(.*?)\n%%%%%%%%%% END TODO: DOI', paper, re.DOTALL)[0]
+                new_doi_section = f"""}}
+        \\end{{minipage}}
+        \\begin{{minipage}}{{0.25\\textwidth}}
+        \\begin{{center}}
+        \\href{{https://crossmark.crossref.org/dialog/?doi=10.21468/{doi}&amp;domain=pdf&amp;date_stamp=YYYY-MM-DD}}{{\includegraphics[width=7mm]{{CROSSMARK_BW_square_no_text.png}}}}\\\\
+        \\tiny{{Check for}}\\\\
+        \\tiny{{updates}}
+        \\end{{center}}
+        \\end{{minipage}}
+        \\\\\\\\
+        \small{{\doi{{10.21468/{doi}}}"""
+            
+                if paper == (paper := paper.replace(original_doi_section, new_doi_section)):
+                    raise ValueError
+            except:
+                print_warning("Could not find the old DOI section at the center.")
         # Add a publication date to the paper.
         paper = Paper.set_date(paper, date)
         return paper
